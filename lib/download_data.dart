@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'sqauare_progress_indicator.dart';
+import 'controller/SQLHelper.dart';
 
 class DownloadScreen extends StatefulWidget {
   @override
@@ -13,45 +14,34 @@ class _DownloadScreenState extends State<DownloadScreen>
   bool isDownloading = true;
   String errorMessage = '';
   List<dynamic> resultList = [];
-  int totalItems = 0;
 
   late AnimationController _controller;
+
+  final int totalPages = 50;
+  final int pageSize = 50;
 
   @override
   void initState() {
     super.initState();
-    _startDownload();
-
-    // Initialize Animation Controller for the entire process
-    // _controller = AnimationController(
-    //   vsync: this,
-    //   duration: Duration(seconds: 10), // Adjust the duration as needed
-    // )..addListener(() {
-    //     setState(() {
-    //       progress = _controller.value;
-    //     });
-    //   });
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
     )..repeat(reverse: false);
+
+    _startDownload();
   }
 
   Future<void> _startDownload() async {
     final dio = Dio();
-    int pageNumber = 1;
-    int pageSize = 50; // Adjust this to API's page size
-    bool hasMoreData = true;
     List<dynamic> allResults = [];
 
     try {
-      while (hasMoreData) {
+      for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
         final String url =
             'http://4.231.253.183:90/api/ChildRegistration/get-registration-by-user-uid-paginated?uid=144e8cec-09e7-11ee-aee0-0242ac1d0002&pageNumber=$pageNumber&pageSize=$pageSize';
 
-        print("🌐 Fetching page: $pageNumber");
-
         final response = await dio.get(url);
+        print("🌐 Fetching page: $pageNumber");
 
         if (response.statusCode == 200 &&
             response.data != null &&
@@ -65,53 +55,46 @@ class _DownloadScreenState extends State<DownloadScreen>
               result.containsKey('items')) {
             pageList = result['items'] as List;
           } else {
-            print("⚠️ Unexpected format on page $pageNumber: $result");
-            hasMoreData = false;
-            break;
+            print(" Unexpected format on page $pageNumber: $result");
+            continue;
           }
 
-          if (pageList.isEmpty) {
-            print("🛑 No more data at page: $pageNumber");
-            hasMoreData = false;
-          } else {
-            allResults.addAll(pageList);
-            print("📦 Page $pageNumber downloaded, items: ${pageList.length}");
+          for (var item in pageList) {
+            final fullname = item['fullName']?.toString() ?? 'Unknown';
+            final age = item['age']?.toString() ?? 'Unknown';
+            final gender = item['gender']?.toString() ?? 'Unknown';
 
-            // Safely access totalPages and fallback to 0 if null
+            await SQLHelper.save(fullname, age, gender);
 
-            print(
-                "..........................................................................${pageList.length}");
-            0; // Handle null by defaulting to 0
-
-            if (pageNumber >= pageList.length) {
-              hasMoreData = false;
-              print("🛑 No more pages left to fetch.");
-            } else {
-              pageNumber++; // Move to next page
-            }
+            allResults.add({
+              'fullName': fullname,
+              'age': age,
+              'gender': gender,
+            });
           }
 
-          // Update progress bar
+          //  Progress update based on page count
           setState(() {
-            print(".........................................................");
-            progress =
-                (pageNumber / pageList.length); // adjust if total unknown
-            if (progress > 1.0) progress = 1.0;
+            progress = pageNumber / totalPages;
           });
         } else {
-          print("❌ Invalid response at page $pageNumber");
-          hasMoreData = false;
+          print(" Error in response at page $pageNumber");
         }
       }
 
-      print("✅ Total downloaded items: ${allResults.length}");
+      print("All pages done. Total items: ${allResults.length}");
 
       setState(() {
         resultList = allResults;
-        totalItems = resultList.length;
         isDownloading = false;
-        _controller.forward();
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Download Complete! ${allResults.length} records saved'),
+        ),
+      );
     } catch (e) {
       setState(() {
         errorMessage = "Download failed: ${e.toString()}";
@@ -122,8 +105,6 @@ class _DownloadScreenState extends State<DownloadScreen>
 
   @override
   Widget build(BuildContext context) {
-    final percentText = '${(progress * 100).toStringAsFixed(0)}%';
-
     return Scaffold(
       appBar: AppBar(title: Text("Download Progress")),
       body: Center(
@@ -137,7 +118,6 @@ class _DownloadScreenState extends State<DownloadScreen>
                       return Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Outer pulsing wave
                           Container(
                             width: 220 + (_controller.value * 60),
                             height: 320 + (_controller.value * 60),
@@ -145,11 +125,10 @@ class _DownloadScreenState extends State<DownloadScreen>
                               shape: BoxShape.rectangle,
                               borderRadius: BorderRadius.circular(
                                   30 + (_controller.value * 20)),
-                              color: Colors.purple
+                              color: Colors.grey
                                   .withOpacity(0.2 * (1 - _controller.value)),
                             ),
                           ),
-                          // Inner glowing container with actual progress
                           Container(
                             width: 220,
                             height: 320,
@@ -157,7 +136,7 @@ class _DownloadScreenState extends State<DownloadScreen>
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.purple
+                                  color: Colors.grey
                                       .withOpacity(progress.clamp(0.3, 0.9)),
                                   blurRadius: 40 * progress,
                                   spreadRadius: 20 * progress,
@@ -172,8 +151,8 @@ class _DownloadScreenState extends State<DownloadScreen>
                               startPosition: StartPosition.topLeft,
                               strokeCap: StrokeCap.square,
                               clockwise: true,
-                              color: Colors.purple,
-                              emptyStrokeColor: Colors.purple.withOpacity(.5),
+                              color: Colors.grey,
+                              emptyStrokeColor: Colors.grey.withOpacity(.5),
                               strokeWidth: 10,
                               emptyStrokeWidth: 10,
                               strokeAlign: SquareStrokeAlign.center,
@@ -192,14 +171,6 @@ class _DownloadScreenState extends State<DownloadScreen>
                     },
                   ),
                   SizedBox(height: 20),
-                  // Text(
-                  //   percentText,
-                  //   style: TextStyle(
-                  //     fontSize: 24,
-                  //     fontWeight: FontWeight.bold,
-                  //     color: Colors.black,
-                  //   ),
-                  // )
                 ],
               )
             : errorMessage.isNotEmpty
@@ -212,23 +183,15 @@ class _DownloadScreenState extends State<DownloadScreen>
                         itemCount: resultList.length,
                         itemBuilder: (context, index) {
                           final item = resultList[index];
-                          final uid = item['uid']?.toString() ?? 'No name';
-                          final fullname =
-                              item['fullName']?.toString() ?? 'Unknown';
-                          final epinumber =
-                              item['epiNumber']?.toString() ?? 'Unknown';
+                          final name = item['fullName'];
+                          final age = item['age'];
+                          final gender = item['gender'];
 
                           return Card(
                             margin: EdgeInsets.symmetric(vertical: 4),
                             child: ListTile(
-                              title: Text(uid),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("Father: $fullname"),
-                                  Text("Mother: $epinumber"),
-                                ],
-                              ),
+                              title: Text(name),
+                              subtitle: Text("Age: $age | Gender: $gender"),
                             ),
                           );
                         },

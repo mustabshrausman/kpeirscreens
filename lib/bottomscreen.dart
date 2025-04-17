@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart'; // Flutter UI toolkit
+import 'package:intl/intl.dart'; // Date formatting ke liye
 
 class HepatitisBottomSheet extends StatefulWidget {
-  final BuildContext parentContext;
-  const HepatitisBottomSheet({super.key, required this.parentContext});
+  const HepatitisBottomSheet({super.key});
 
   @override
   State<HepatitisBottomSheet> createState() => _HepatitisBottomSheetState();
 }
 
 class _HepatitisBottomSheetState extends State<HepatitisBottomSheet> {
-  int selectedImageIndex = -1;
-  String? dropdownValue;
-  bool dropdownSelected = false;
+  int selectedImageIndex = -1; // Image selection track karne ke liye
+  String? dropdownValue; // Dropdown se selected value
+  bool dropdownSelected = false; // Dropdown select hua ya nahi
+  bool showWarning = false; // Custom Urdu warning show karne ke liye
 
+  // Image assets list
   List<String> imagePaths = [
     'assests/images/due_defaulter.png',
     'assests/images/due_defaulter.png',
@@ -22,6 +22,7 @@ class _HepatitisBottomSheetState extends State<HepatitisBottomSheet> {
     'assests/images/injections-fluid.png',
   ];
 
+  // Image labels
   List<String> imageLabels = [
     'Schedule\n',
     'Retro\n',
@@ -29,47 +30,47 @@ class _HepatitisBottomSheetState extends State<HepatitisBottomSheet> {
     'Vaccinate\n',
   ];
 
-  DateTime selectedDate = DateTime.now();
+  DateTime selectedDate = DateTime.now(); // Default selected date
+
+  // Formatted date text
   String get formattedDate => DateFormat('dd/MM/yyyy').format(selectedDate);
 
-  Future<void> _selectDate() async {
+  // Date picker function
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initialDate: selectedDate, // Default date
+      firstDate: DateTime(2000), // Earliest date
+      lastDate: DateTime(2100), // Latest date
     );
-    if (picked != null) {
-      setState(() {
-        selectedDate = picked;
-      });
-      DateTime now = DateTime.now();
-      DateTime today = DateTime(now.year, now.month, now.day);
-      DateTime pickedDate = DateTime(picked.year, picked.month, picked.day);
-      print("$pickedDate $today");
 
-      // ✅ Retro selected & dropdown selected
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked; // Date update
+      });
+
+      // Current date comparison
+      final DateTime now = DateTime.now();
+      final DateTime today = DateTime(now.year, now.month, now.day);
+      final DateTime pickedDate =
+          DateTime(picked.year, picked.month, picked.day);
+
+      // Agar Retro selected ho aur dropdown bhi selected ho
       if (selectedImageIndex == 1 && dropdownSelected) {
         if (pickedDate != today) {
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(Navigator.of(context).context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  "براہِ مہربانی آج ہی کی تاریخ کا انتخاب کریں",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.black,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(bottom: 70, left: 40, right: 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                duration: Duration(seconds: 2),
-              ),
-            );
+          setState(() {
+            showWarning = true; // Urdu warning dikhao
           });
-          return;
+
+          // 2 seconds baad warning hide karo
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              setState(() {
+                showWarning = false;
+              });
+            }
+          });
+          return; // Exit function
         }
       }
     }
@@ -78,142 +79,272 @@ class _HepatitisBottomSheetState extends State<HepatitisBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom, // Keyboard padding
+      ),
+      child: Stack(
+        //Used Stack for warning
         children: [
-          // Header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Color(0xFF9bd4de),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
-              ),
-            ),
-            child: Text(
-              "Hepatitis B0",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4DB4D7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-
-          SizedBox(height: 20),
-
-          // Image Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(imagePaths.length, (index) {
-              bool isSelected = selectedImageIndex == index;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedImageIndex = index;
-                    dropdownValue = null;
-                    dropdownSelected = false;
-                  });
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 5),
-                  padding: EdgeInsets.all(6),
-                  height: 110,
-                  width: 86,
-                  decoration: BoxDecoration(
-                    color: isSelected ? Color(0xFF4DB4D7) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9bd4de), // Header background color
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        imagePaths[index],
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
-                        color: isSelected ? Colors.white : Color(0xFF4DB4D7),
-                        colorBlendMode: BlendMode.srcIn,
+                ),
+                child: const Text(
+                  "Hepatitis B0", // Title
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4DB4D7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Horizontal image row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(imagePaths.length, (index) {
+                    bool isSelected = selectedImageIndex == index;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedImageIndex = index; // Image select
+                          dropdownValue = null;
+                          dropdownSelected = false;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 5),
+                        padding: const EdgeInsets.all(6),
+                        height: 100,
+                        width: 86,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF4DB4D7) // Select highlight
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              imagePaths[index],
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF4DB4D7),
+                              colorBlendMode: BlendMode.srcIn,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              imageLabels[index],
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    isSelected ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 5),
-                      Text(
-                        imageLabels[index],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: isSelected ? Colors.white : Colors.black87,
+                    );
+                  }),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Dropdown for Retro options
+              if (selectedImageIndex == 1 || selectedImageIndex == 2)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Select Option:",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+
+                      // Dropdown wrapped in styled container
+                      Expanded(
+                        flex: 2, // You can adjust width ratio here
+                        child: DropdownButtonHideUnderline(
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10), // Inner padding
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(8), // Rounded border
+                                borderSide: const BorderSide(
+                                    color: Colors.grey), // Grey border
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    const BorderSide(color: Colors.grey),
+                              ),
+                            ),
+                            child: DropdownButton<String>(
+                              isExpanded: true, // Full width dropdown
+                              value: dropdownValue,
+                              hint: const Text(
+                                "CHC Attariwal",
+                                style: TextStyle(
+                                    color: Colors.grey), // Hint text style
+                              ),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  dropdownValue = newValue;
+                                  dropdownSelected = true;
+                                });
+                              },
+                              items: [
+                                'CHC Attariwal',
+                                'BHU Akhurwal',
+                                'BHU Ara Khel',
+                                'BHU Bosti Khel',
+                                'BHU Paya',
+                                'CHC Ghareba',
+                                'BHU sheen dand',
+                                'BHU Turki ismailkhel',
+                                'BHU Sheraki',
+                                'BHU Tor Chapar',
+                                'CD Naseem ( bazar )',
+                                'CH Zarghun khel'
+                              ]
+                                  .map((String value) =>
+                                      DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                  .toList(),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              );
-            }),
-          ),
+              if (selectedImageIndex == 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          "Select Option:",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
 
-          SizedBox(height: 20),
-
-          // Retro selected — show dropdown
-          if (selectedImageIndex == 1 || selectedImageIndex == 2)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Select Option:",
-                      style: TextStyle(fontSize: 16),
-                    ),
+                      // Dropdown wrapped in styled container
+                      Expanded(
+                        flex: 2, // You can adjust width ratio here
+                        child: DropdownButtonHideUnderline(
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10), // Inner padding
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(8), // Rounded border
+                                borderSide: const BorderSide(
+                                    color: Colors.grey), // Grey border
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    const BorderSide(color: Colors.grey),
+                              ),
+                            ),
+                            child: DropdownButton<String>(
+                              isExpanded: true, // Full width dropdown
+                              value: dropdownValue,
+                              hint: const Text(
+                                "Vaccinate 1",
+                                style: TextStyle(
+                                    color: Colors.grey), // Hint text style
+                              ),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  dropdownValue = newValue;
+                                  dropdownSelected = true;
+                                });
+                              },
+                              items: [
+                                'Vaccinate 1',
+                                'Vaccinate 2',
+                                'Vaccinate 3',
+                                'Vaccinate 4',
+                                'Vaccinate 5',
+                                'Vaccinate 6',
+                                'Vaccinate 7',
+                                'Vaccinate 8',
+                                'Vaccinate 9',
+                                'Vaccinate 10',
+                                'Vaccinate 11',
+                                'Vaccinate 12'
+                              ]
+                                  .map((String value) =>
+                                      DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      ))
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  DropdownButton<String>(
-                    value: dropdownValue,
-                    hint: Text("Choose"),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue = newValue;
-                        dropdownSelected = true;
-                      });
-                    },
-                    items: ['Option 1', 'Option 2', 'Option 3']
-                        .map((String value) => DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            ))
-                        .toList(),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-          SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-          // Date and Done button row (Always visible)
-          if (selectedImageIndex == 1 || selectedImageIndex == 0)
-            // Date and Done button row (Always visible)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-              child: Row(
+              // Date and Done button
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     if (selectedImageIndex == 0 || selectedImageIndex == 1)
                       GestureDetector(
-                        onTap: _selectDate,
+                        onTap: () => _selectDate(context), // Open date picker
                         child: Row(
                           children: [
-                            Text(
+                            const Text(
                               'Date: ',
                               style:
                                   TextStyle(fontSize: 15, color: Colors.grey),
                             ),
                             Text(
                               formattedDate,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 15, color: Color(0xFF4DB4D7)),
                             ),
                           ],
@@ -222,47 +353,68 @@ class _HepatitisBottomSheetState extends State<HepatitisBottomSheet> {
                     if (selectedImageIndex == 0 || selectedImageIndex == 1)
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF4DB4D7),
+                          backgroundColor: const Color(0xFF4DB4D7),
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(3),
                           ),
                         ),
                         onPressed: () {
-                          print(
-                              "Button pressed with index: $selectedImageIndex");
-                          Navigator.pop(context);
+                          Navigator.pop(context); // Bottom sheet close
                         },
-                        child:
-                            Text("DONE", style: TextStyle(color: Colors.white)),
+                        child: const Text("DONE",
+                            style: TextStyle(color: Colors.white)),
                       ),
-                  ]),
-            ),
+                    if (selectedImageIndex == 2 || selectedImageIndex == 3)
+                      Container(
+                        padding: const EdgeInsets.only(left: 285),
+                        // margin: const EdgeInsets.symmetric(horizontal: 3),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4DB4D7),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context); // Bottom sheet close
+                          },
+                          child: const Text("DONE",
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
 
-          if (selectedImageIndex == 2 || selectedImageIndex == 3)
-            Container(
-                margin: EdgeInsets.all(10),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF4DB4D7),
-                      foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    onPressed: () {
-                      print("Button pressed with index: $selectedImageIndex");
-                      Navigator.pop(context);
-                    },
-                    child: Text("DONE", style: TextStyle(color: Colors.white)),
+          // Custom Urdu warning when wrong date selected
+          if (showWarning)
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 160, // Bottom se distance
+              child: Material(
+                elevation: 6,
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.black, // Background color
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  child: Text(
+                    "براہِ مہربانی آج ہی کی تاریخ کا انتخاب کریں", // Urdu warning
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
-                ))
+                ),
+              ),
+            ),
         ],
       ),
     );

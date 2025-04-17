@@ -114,19 +114,6 @@ class _RegistrationState extends State<Registration> {
     );
   }
 
-  void showHepatitisBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => HepatitisBottomSheet(
-        parentContext: context,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -308,9 +295,7 @@ class _RegistrationState extends State<Registration> {
                       context: context,
                       isScrollControlled: true,
                       builder: (bottomSheetContext) {
-                        return HepatitisBottomSheet(
-                            parentContext:
-                                parentContext); // 👈 yeh pass krna hai
+                        return HepatitisBottomSheet(); // 👈 yeh pass krna hai
                       },
                     );
                   },

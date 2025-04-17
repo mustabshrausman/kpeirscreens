@@ -303,7 +303,7 @@ class _homescreenState extends State<homescreen> {
           ),
         ),
         if (_isScrollable == true)
-          SizedBox(height: 10), // ✅ only when scrollable
+          SizedBox(height: 10), //  only when scrollable
       ],
     );
   }
