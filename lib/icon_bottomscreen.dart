@@ -50,24 +50,45 @@ class _IconBottomScreenState extends State<IconBottomScreen> {
                       children: List.generate(_icons.length, (index) {
                         bool isSelected = index == indexxx;
                         return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              indexxx = isSelected ? -1 : index;
-                            });
-                          },
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            padding: EdgeInsets.all(10),
-                            child: Transform.scale(
-                              scale: isSelected ? 1.5 : 1.0,
-                              child: Icon(
-                                _icons[index],
-                                size: 40,
-                                color: isSelected ? Colors.blue : Colors.grey,
-                              ),
-                            ),
-                          ),
-                        );
+                            onTap: () {
+                              setState(() {
+                                indexxx = isSelected ? -1 : index;
+                              });
+                            },
+                            child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Transform.scale(
+                                  scale: isSelected ? 1.3 : 1.1,
+                                  child: AnimatedContainer(
+                                    duration: Duration(milliseconds: 300),
+                                    padding: EdgeInsets.all(10),
+                                    // width: isSelected ? 70 : 60, // Animate size
+                                    // height: isSelected ? 70 : 60,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Colors.grey
+                                          : Colors.grey.withOpacity(0.1),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.grey
+                                            : Colors.grey,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Transform.scale(
+                                      scale: isSelected ? 1.5 : 1.0,
+                                      child: Icon(
+                                        _icons[index],
+                                        size: 30,
+                                        color: isSelected
+                                            ? Colors.blue
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                )));
                       }),
                     ),
                   ),
