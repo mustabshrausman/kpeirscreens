@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projectscreen/ILR_temprature.dart';
 import 'package:projectscreen/download_data.dart';
 import 'package:projectscreen/home_screen.dart';
 import 'package:projectscreen/loginscreen.dart';
@@ -6,6 +7,7 @@ import 'controller/SQLHelper.dart';
 import 'displaydatafromdatabase.dart';
 import 'bottomscreen.dart';
 import 'icon_bottomscreen.dart';
+import 'ILR_temprature.dart';
 
 class FirstScreen extends StatefulWidget {
   const FirstScreen({super.key});
@@ -29,7 +31,10 @@ class _FirstScreenState extends State<FirstScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main Menu'),
+        title: const Text(
+          'Main Menu',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
         backgroundColor: Colors.deepPurple,
       ),
@@ -105,6 +110,16 @@ class _FirstScreenState extends State<FirstScreen> {
                         BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   builder: (context) => const IconBottomScreen(),
+                );
+              },
+            ),
+            _buildOptionButton(
+              icon: Icons.star,
+              label: 'ILR Temperature',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ilrtemp()),
                 );
               },
             ),
