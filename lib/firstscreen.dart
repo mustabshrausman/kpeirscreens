@@ -8,6 +8,7 @@ import 'displaydatafromdatabase.dart';
 import 'bottomscreen.dart';
 import 'icon_bottomscreen.dart';
 import 'ILR_temprature.dart';
+import 'getxwork/registrationgetx.dart';
 
 class FirstScreen extends StatefulWidget {
   const FirstScreen({super.key});
@@ -120,6 +121,16 @@ class _FirstScreenState extends State<FirstScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ilrtemp()),
+                );
+              },
+            ),
+            _buildOptionButton(
+              icon: Icons.emoji_emotions_rounded,
+              label: 'GETX REGISTRATION',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Registrationn()),
                 );
               },
             ),

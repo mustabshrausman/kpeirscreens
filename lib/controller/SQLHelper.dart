@@ -29,15 +29,30 @@ class SQLHelper {
   static Future<int> save(String name, String? age, String? gender) async {
     final db = await SQLHelper.db();
 
-    final data = {'name': name, 'age': age, 'gender':gender};
+    final data = {'name': name, 'age': age, 'gender': gender};
     final id = await db.insert('user', data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
     return id;
   }
+
   static Future<List<Map<String, dynamic>>> getItems() async {
     final db = await SQLHelper.db();
     return db.query('user', orderBy: "id");
   }
 
+  static Future<int> updateItem(
+      int id, String title, String? descrption) async {
+    final db = await SQLHelper.db();
 
+    final data = {'id': id, 'name': title, 'age': descrption};
+
+    final result =
+        await db.update('user', data, where: "id = ?", whereArgs: [id]);
+    return result;
+  }
+
+  static Future<List<Map<String, dynamic>>> getItem(int id) async {
+    final db = await SQLHelper.db();
+    return db.query('user', where: "id = ?", whereArgs: [id], limit: 1);
+  }
 }

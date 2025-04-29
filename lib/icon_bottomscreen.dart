@@ -30,9 +30,6 @@ class _IconBottomScreenState extends State<IconBottomScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ❌ Removed "Toggle Dropdown" button
-
-          // ✅ Always visible dropdown section
           if (drop_down)
             Container(
               height: MediaQuery.of(context).size.height / 3,
